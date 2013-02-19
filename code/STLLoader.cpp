@@ -136,9 +136,16 @@ void STLImporter::InternReadFile( const std::string& pFile,
 
 	bool bMatClr = false;
 
+	//Note_clh
+	const char* sz = mBuffer;
+	while (::IsSpace(*sz)) {
+		sz++;
+	}
+
 	// check whether the file starts with 'solid' -
 	// in this case we can simply assume it IS a text file. finished.
-	if (!::strncmp(mBuffer,"solid",5)) {
+	//Note_clh : on un bug sur lecture de tst_002.stl voir avec ccx si on log un bug ou si on patch nous meme ???
+	if (!::strncmp(sz,"solid",5)) {
 		LoadASCIIFile();
 	}
 	else bMatClr = LoadBinaryFile();
@@ -179,7 +186,12 @@ void STLImporter::LoadASCIIFile()
 {
 	aiMesh* pMesh = pScene->mMeshes[0];
 
-	const char* sz = mBuffer + 5; // skip the "solid"
+	const char* sz = mBuffer;
+	while (::IsSpace(*sz)) {
+		sz++;
+	}
+
+	sz += 5; // skip the "solid"
 	SkipSpaces(&sz);
 	const char* szMe = sz;
 	while (!::IsSpaceOrNewLine(*sz)) {
@@ -205,6 +217,8 @@ void STLImporter::LoadASCIIFile()
 	unsigned int curFace = 0, curVertex = 3;
 	for ( ;; )
 	{
+		while (true)
+		{
 		// go to the next token
 		if(!SkipSpacesAndLineEnd(&sz))
 		{
@@ -286,6 +300,12 @@ void STLImporter::LoadASCIIFile()
 		else while (!::IsSpaceOrNewLine(*sz)) {
 			++sz;
 		}
+	}
+			while (!::IsSpaceOrNewLine(*sz)) {
+				++sz;
+			}
+			if (sz[0]=='\0')
+				break;
 	}
 
 	if (!curFace)	{
